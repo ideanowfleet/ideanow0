@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Management - Reports</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: #5e2d76;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .nav-link:hover {
+            background-color: #bd9ccd;
+        }
+        
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .report-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .report-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .report-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .report-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .report-icon.trip { background: #5e2d76; }
+        .report-icon.expense { background: #5e2d76; }
+        .report-icon.truck { background: #5e2d76; }
+        .report-icon.employee { background: #5e2d76; color: white; }
+        .report-icon.financial { background: #5e2d76; }
+        .report-icon.maintenance { background: #5e2d76; }
+        
+        .report-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+        }
+        
+        .report-description {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .report-filters {
+            margin-bottom: 20px;
+        }
+        
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 3px;
+            font-weight: 500;
+        }
+        
+        .filter-group input,
+        .filter-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #5e2d76;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #bd9ccd;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        
+        .btn:disabled {
+            background: #e9ecef;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .report-results {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 15px;
+        }
+        
+        .results-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .results-meta {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .summary-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+        
+        .summary-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .data-table td {
+            font-size: 13px;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .loading i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .report-actions {
+                flex-direction: column;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        .header h1 {
+            font-weight: bold;   
+            margin: 0;
+            color: white; 
+        }
+
+        .header p {
+            margin: 5px 0 0 0;   
+            font-weight: bold;
+            color: white;     
+        }
+
+        .header i {
+           margin-right: 10px;     
+           color: white;          
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-chart-bar"></i> Fleet Management - Reports</h1>
+                <p>Generate comprehensive reports and analytics for your fleet operations</p>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="/manage.html" class="nav-link"><i class="fas fa-cogs"></i> Manage</a>
+            </div>
+        </div>
+
+        <div class="alert alert-success" id="success-alert"></div>
+        <div class="alert alert-error" id="error-alert"></div>
+
+        <div class="reports-grid">
+            <!-- Trip Summary Report -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-icon trip"><i class="fas fa-route"></i></div>
+                    <h3 class="report-title">Trip Summary Report</h3>
+                </div>
+                <p class="report-description">Comprehensive overview of all trips with performance metrics, revenue, and efficiency data.</p>
+                <div class="report-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Start Date</label>
+                            <input type="date" id="trip-start-date" required>
+                        </div>
+                        <div class="filter-group">
+                            <label>End Date</label>
+                            <input type="date" id="trip-end-date" required>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Truck</label>
+                            <select id="trip-truck"><option value="">All Trucks</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Driver</label>
+                            <select id="trip-driver"><option value="">All Drivers</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Region</label>
+                            <select id="trip-region">
+                                <option value="">All Regions</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <button class="btn btn-primary" onclick="generateReport('trip_summary')"><i class="fas fa-play"></i> Generate Report</button>
+                    <button class="btn btn-success" onclick="exportReport('trip_summary', 'csv')" disabled id="trip-summary-export-btn"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+            <!-- Expense Summary Report -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-icon expense"><i class="fas fa-receipt"></i></div>
+                    <h3 class="report-title">Expense Summary Report</h3>
+                </div>
+                <p class="report-description">Detailed breakdown of expenses by category, time period, and approval status.</p>
+                <div class="report-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Start Date</label>
+                            <input type="date" id="expense-start-date">
+                        </div>
+                        <div class="filter-group">
+                            <label>End Date</label>
+                            <input type="date" id="expense-end-date">
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Truck</label>
+                            <select id="expense-truck"><option value="">All Trucks</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Category</label>
+                            <select id="expense-category">
+                                <option value="">All Categories</option>
+                                <option value="Maintenance">Maintenance</option>
+                                <option value="Insurance">Insurance</option>
+                                <option value="Repairs">Repairs</option>
+                                <option value="Parking">Parking</option>
+                                <option value="Fines">Fines</option>
+                                <option value="Fitness">Fitness Check</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="expense-status">
+                                <option value="">All Status</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <button class="btn btn-primary" onclick="generateReport('expense_summary')"><i class="fas fa-play"></i> Generate Report</button>
+                    <button class="btn btn-success" onclick="exportReport('expense_summary', 'csv')" disabled id="expense-summary-export-btn"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+            <!-- Truck Performance Report -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-icon truck"><i class="fas fa-truck"></i></div>
+                    <h3 class="report-title">Truck Performance Report</h3>
+                </div>
+                <p class="report-description">Performance analysis for each truck including efficiency, costs, and utilization metrics.</p>
+                <div class="report-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Start Date</label>
+                            <input type="date" id="truck-start-date">
+                        </div>
+                        <div class="filter-group">
+                            <label>End Date</label>
+                            <input type="date" id="truck-end-date">
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Truck</label>
+                            <select id="truck-truck"><option value="">All Trucks</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Region</label>
+                            <select id="truck-region">
+                                <option value="">All Regions</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <button class="btn btn-primary" onclick="generateReport('truck_performance')"><i class="fas fa-play"></i> Generate Report</button>
+                    <button class="btn btn-success" onclick="exportReport('truck_performance', 'csv')" disabled id="truck-performance-export-btn"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+            <!-- Employee Performance Report -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-icon employee"><i class="fas fa-users"></i></div>
+                    <h3 class="report-title">Employee Performance Report</h3>
+                </div>
+                <p class="report-description">Driver performance metrics, statistics, and productivity analysis.</p>
+                <div class="report-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Start Date</label>
+                            <input type="date" id="employee-start-date">
+                        </div>
+                        <div class="filter-group">
+                            <label>End Date</label>
+                            <input type="date" id="employee-end-date">
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Employee</label>
+                            <select id="employee-employee"><option value="">All Employees</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Position</label>
+                            <select id="employee-position">
+                                <option value="">All Positions</option>
+                                <option value="Driver">Driver</option>
+                                <option value="Manager">Manager</option>
+                                <option value="Mechanic">Mechanic</option>
+                                <option value="Dispatcher">Dispatcher</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Region</label>
+                            <select id="employee-region">
+                                <option value="">All Regions</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <button class="btn btn-primary" onclick="generateReport('employee_performance')"><i class="fas fa-play"></i> Generate Report</button>
+                    <button class="btn btn-success" onclick="exportReport('employee_performance', 'csv')" disabled id="employee-performance-export-btn"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+            <!-- Financial Summary Report -->
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-icon financial"><i class="fas fa-dollar-sign"></i></div>
+                    <h3 class="report-title">Financial Summary Report</h3>
+                </div>
+                <p class="report-description">Revenue, expenses, profit analysis with monthly breakdown and category insights.</p>
+                <div class="report-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Start Date</label>
+                            <input type="date" id="financial-start-date">
+                        </div>
+                        <div class="filter-group">
+                            <label>End Date</label>
+                            <input type="date" id="financial-end-date">
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Truck</label>
+                            <select id="financial-truck"><option value="">All Trucks</option></select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Region</label>
+                            <select id="financial-region">
+                                <option value="">All Regions</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <button class="btn btn-primary" onclick="generateReport('financial_summary')"><i class="fas fa-play"></i> Generate Report</button>
+                    <button class="btn btn-success" onclick="exportReport('financial_summary', 'csv')" disabled id="financial-summary-export-btn"><i class="fas fa-download"></i> Export CSV</button>
+                </div>
+            </div>
+        </div>
+        <div class="report-results" id="report-results">
+            <div class="results-header">
+                <div>
+                    <h2 class="results-title" id="results-title">Report Results</h2>
+                    <p class="results-meta" id="generated-time"></p>
+                </div>
+            </div>
+            <div class="loading" id="loading" style="display: none;">
+                <i class="fas fa-spinner"></i>
+                <p>Generating report...</p>
+            </div>
+            <div id="report-content"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentReportType = null;
+        let currentReportData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDropdownData();
+            setDefaultDates();
+        });
+
+        function setDefaultDates() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            const todayStr = today.toISOString().split('T')[0];
+            const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+            const reportTypes = ['trip', 'expense', 'truck', 'employee', 'financial'];
+            reportTypes.forEach(type => {
+                const startDateEl = document.getElementById(`${type}-start-date`);
+                const endDateEl = document.getElementById(`${type}-end-date`);
+                if (startDateEl) startDateEl.value = thirtyDaysAgoStr;
+                if (endDateEl) endDateEl.value = todayStr;
+            });
+        }
+
+        async function loadDropdownData() {
+        try {
+            // ---- TRUCKS: Only Active ----
+            const trucksResponse = await fetch('/api/trucks');
+            if (trucksResponse.ok) {
+                const trucksData = await trucksResponse.json();
+                const truckSelects = document.querySelectorAll('[id$="-truck"]');
+                // Only active trucks
+                const activeTrucks = trucksData.trucks.filter(truck =>
+                    truck.status && truck.status.toLowerCase() === 'active'
+                );
+                truckSelects.forEach(select => {
+                    // Clear options except "All"
+                    const firstOption = select.querySelector('option');
+                    select.innerHTML = '';
+                    if (firstOption) select.appendChild(firstOption);
+                    activeTrucks.forEach(truck => {
+                        const option = document.createElement('option');
+                        option.value = truck.id;
+                        option.textContent = `${truck.truck_number} - ${truck.make} ${truck.model}`;
+                        select.appendChild(option);
+                    });
+                });
+            }
+
+            // ---- EMPLOYEES: Only Active ----
+            const employeesResponse = await fetch('/api/employees');
+            if (employeesResponse.ok) {
+                const employeesData = await employeesResponse.json();
+                // Only ACTIVE employees
+                const activeEmployees = employeesData.employees.filter(emp => 
+                    emp.status && emp.status.toLowerCase() === 'active'
+                );
+                // Drivers (active only)
+                const driverSelects = document.querySelectorAll('[id$="-driver"]');
+                const drivers = activeEmployees.filter(emp => emp.position && emp.position.toLowerCase() === 'driver')
+                    .map(emp => ({
+                        id: emp.id || emp._id || (emp._id && emp._id.$oid) || "",
+                        first_name: emp.first_name,
+                        last_name: emp.last_name
+                    }));
+                driverSelects.forEach(select => {
+                    // Clear options except "All"
+                    const firstOption = select.querySelector('option');
+                    select.innerHTML = '';
+                    if (firstOption) select.appendChild(firstOption);
+                    drivers.forEach(driver => {
+                        if (driver.id) {
+                            const option = document.createElement('option');
+                            option.value = driver.id;
+                            option.textContent = `${driver.first_name} ${driver.last_name}`;
+                            select.appendChild(option);
+                        }
+                    });
+                });
+                // All Employees (active only)
+                const employeeSelects = document.querySelectorAll('[id$="-employee"]');
+                employeeSelects.forEach(select => {
+                    // Clear options except "All"
+                    const firstOption = select.querySelector('option');
+                    select.innerHTML = '';
+                    if (firstOption) select.appendChild(firstOption);
+                    activeEmployees.forEach(employee => {
+                        const empId = employee.id || employee._id || (employee._id && employee._id.$oid) || "";
+                        if (empId) {
+                            const option = document.createElement('option');
+                            option.value = empId;
+                            option.textContent = `${employee.first_name} ${employee.last_name} (${employee.position})`;
+                            select.appendChild(option);
+                        }
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('Error loading dropdown data:', error);
+        }
+    }
+
+        // Helper to get the correct date elements based on reportType
+        function getDateElements(reportType) {
+            let startDateEl, endDateEl;
+            if (reportType === 'trip_summary') {
+                startDateEl = document.getElementById('trip-start-date');
+                endDateEl = document.getElementById('trip-end-date');
+            } else if (reportType === 'expense_summary') {
+                startDateEl = document.getElementById('expense-start-date');
+                endDateEl = document.getElementById('expense-end-date');
+            } else if (reportType === 'truck_performance') {
+                startDateEl = document.getElementById('truck-start-date');
+                endDateEl = document.getElementById('truck-end-date');
+            } else if (reportType === 'employee_performance') {
+                startDateEl = document.getElementById('employee-start-date');
+                endDateEl = document.getElementById('employee-end-date');
+            } else if (reportType === 'financial_summary') {
+                startDateEl = document.getElementById('financial-start-date');
+                endDateEl = document.getElementById('financial-end-date');
+            }
+            return { startDateEl, endDateEl };
+        }
+
+        async function generateReport(reportType) {
+            currentReportType = reportType;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('report-results').style.display = 'block';
+            document.getElementById('report-content').innerHTML = '';
+            const exportBtn = document.getElementById(`${reportType.replace('_', '-')}-export-btn`);
+            if (exportBtn) exportBtn.disabled = true;
+
+            // Use correct date elements
+            const { startDateEl, endDateEl } = getDateElements(reportType);
+
+            if (startDateEl && !startDateEl.value) {
+                showAlert('error', 'Please select a Start Date.');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+            if (endDateEl && !endDateEl.value) {
+                showAlert('error', 'Please select an End Date.');
+                document.getElementById('loading').style.display = 'none';
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams();
+                const startDate = startDateEl.value;
+                const endDate = endDateEl.value;
+                if (startDate) params.append('start_date', startDate);
+                if (endDate) params.append('end_date', endDate);
+
+                // Add filters
+                if (reportType === 'trip_summary') {
+                    const truckId = document.getElementById('trip-truck')?.value;
+                    const driverId = document.getElementById('trip-driver')?.value;
+                    const region = document.getElementById('trip-region')?.value;
+                    if (truckId) params.append('truck_id', truckId);
+                    if (driverId) params.append('driver_id', driverId);
+                    if (region) params.append('region', region);
+                } else if (reportType === 'expense_summary') {
+                    const truckId = document.getElementById('expense-truck')?.value;
+                    const category = document.getElementById('expense-category')?.value;
+                    const status = document.getElementById('expense-status')?.value;
+                    if (truckId) params.append('truck_id', truckId);
+                    if (category) params.append('category', category);
+                    if (status) params.append('approval_status', status);
+                } else if (reportType === 'truck_performance') {
+                    const truckId = document.getElementById('truck-truck')?.value;
+                    const region = document.getElementById('truck-region')?.value;
+                    if (truckId) params.append('truck_id', truckId);
+                    if (region) params.append('region', region);
+                } else if (reportType === 'employee_performance') {
+                    const employeeId = document.getElementById('employee-employee')?.value;
+                    const position = document.getElementById('employee-position')?.value;
+                    const region = document.getElementById('employee-region')?.value;
+                    if (employeeId) params.append('employee_id', employeeId);
+                    if (position) params.append('position', position);
+                    if (region) params.append('region', region);
+                } else if (reportType === 'financial_summary') {
+                    const truckId = document.getElementById('financial-truck')?.value;
+                    const region = document.getElementById('financial-region')?.value;
+                    if (truckId) params.append('truck_id', truckId);
+                    if (region) params.append('region', region);
+                }
+
+                const response = await fetch(`/api/reports/${reportType}?${params.toString()}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentReportData = data;
+                    displayReport(data);
+                    showAlert('success', 'Report generated successfully!');
+                    if (exportBtn) exportBtn.disabled = false;
+                } else {
+                    throw new Error(data.error || 'Failed to generate report');
+                }
+            } catch (error) {
+                showAlert('error', 'Error generating report: ' + error.message);
+                console.error('Error generating report:', error);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayReport(data) {
+            document.getElementById('results-title').textContent = data.report_type;
+            document.getElementById('generated-time').textContent = new Date(data.generated_at).toLocaleString();
+            const content = document.getElementById('report-content');
+            content.innerHTML = '';
+
+            // Summary cards
+            if (data.summary) {
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'summary-cards';
+                Object.entries(data.summary).forEach(([key, value]) => {
+                    if (typeof value === 'object') return;
+                    const card = document.createElement('div');
+                    card.className = 'summary-card';
+                    const valueDiv = document.createElement('div');
+                    valueDiv.className = 'summary-value';
+                    valueDiv.textContent = typeof value === 'number' ? value.toLocaleString() : value;
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'summary-label';
+                    labelDiv.textContent = key.replace(/_/g, ' ');
+                    card.appendChild(valueDiv);
+                    card.appendChild(labelDiv);
+                    summaryDiv.appendChild(card);
+                });
+                content.appendChild(summaryDiv);
+            }
+            // Data table
+            const dataKey = Object.keys(data).find(key => Array.isArray(data[key]) && key !== 'report_type');
+            if (dataKey && data[dataKey].length > 0) {
+                const table = createDataTable(data[dataKey]);
+                content.appendChild(table);
+            }
+        }
+
+        function createDataTable(data) {
+            const table = document.createElement('table');
+            table.className = 'data-table';
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            const headers = Object.keys(data[0]);
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header.replace(/_/g, ' ').toUpperCase();
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            const tbody = document.createElement('tbody');
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    let value = row[header];
+                    if (typeof value === 'number') {
+                        if (header.includes('date')) {
+                            value = new Date(value).toLocaleDateString();
+                        } else if (header.includes('amount') || header.includes('revenue') || header.includes('cost') || header.includes('profit')) {
+                            value = '$' + value.toLocaleString();
+                        } else {
+                            value = value.toLocaleString();
+                        }
+                    } else if (value && header.includes('date')) {
+                        value = new Date(value).toLocaleDateString();
+                    }
+                    td.textContent = value || 'N/A';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            return table;
+        }
+
+        async function exportReport(reportType, format) {
+            if (!currentReportData) {
+                showAlert('error', 'Please generate a report first');
+                return;
+            }
+            try {
+                const params = new URLSearchParams();
+                const { startDateEl, endDateEl } = getDateElements(reportType);
+                if (startDateEl && startDateEl.value) params.append('start_date', startDateEl.value);
+                if (endDateEl && endDateEl.value) params.append('end_date', endDateEl.value);
+                params.append('format', format);
+                if (reportType === 'trip_summary') {
+                    const truckId = document.getElementById('trip-truck')?.value;
+                    const driverId = document.getElementById('trip-driver')?.value;
+                    const region = document.getElementById('trip-region')?.value;
+                    if (truckId) params.append('truck_id', truckId);
+                    if (driverId) params.append('driver_id', driverId);
+                    if (region) params.append('region', region);
+                } else if (reportType === 'expense_summary') {
+                    const truckId = document.getElementById('expense-truck')?.value;
+                    const category = document.getElementById('expense-category')?.value;
+                    const status = document.getElementById('expense-status')?.value;
+                    if (truckId) params.append('truck_id', truckId);
+                    if (category) params.append('category', category);
+                    if (status) params.append('approval_status', status);
+                } else if (reportType === 'truck_performance') {
+                    const truckId = document.getElementById('truck-truck')?.value;
+                    const region = document.getElementById('truck-region')?.value;
+                    if (truckId) params.append('truck_id', truckId);
+                    if (region) params.append('region', region);
+                } else if (reportType === 'employee_performance') {
+                    const employeeId = document.getElementById('employee-employee')?.value;
+                    const position = document.getElementById('employee-position')?.value;
+                    const region = document.getElementById('employee-region')?.value;
+                    if (employeeId) params.append('employee_id', employeeId);
+                    if (position) params.append('position', position);
+                    if (region) params.append('region', region);
+                } else if (reportType === 'financial_summary') {
+                    const truckId = document.getElementById('financial-truck')?.value;
+                    const region = document.getElementById('financial-region')?.value;
+                    if (truckId) params.append('truck_id', truckId);
+                    if (region) params.append('region', region);
+                }
+                const url = `/api/reports/${reportType}?${params.toString()}`;
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${reportType}_report.${format}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showAlert('success', `Report exported as ${format.toUpperCase()} successfully!`);
+            } catch (error) {
+                showAlert('error', 'Error exporting report: ' + error.message);
+                console.error('Error exporting report:', error);
+            }
+        }
+
+        function showAlert(type, message) {
+            const alertElement = document.getElementById(`${type}-alert`);
+            alertElement.textContent = message;
+            alertElement.style.display = 'block';
+            const otherType = type === 'success' ? 'error' : 'success';
+            document.getElementById(`${otherType}-alert`).style.display = 'none';
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+<footer style="text-align: center; padding: 8px 0; background-color: #f9f9f9;">
+    <div style="
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.8rem;
+      color: rgb(96, 19, 109);">
+      <img src="image/ideanow-logo.png" alt="IDEANOW Logo" style="height: 45px;">
+      <span>Powered by <strong>IDEANOW</strong></span>
+    </div>
+</footer>
+</html>
